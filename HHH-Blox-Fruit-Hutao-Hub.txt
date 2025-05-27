@@ -77,7 +77,7 @@ end)
 --Player
 
 local Playerslist = {}
-for i,v in pairs(game:GetService("Players"):GetChildren()) do
+for i,v in pairs(game:GetService("Players"):GetPlayers()) do
     table.insert(Playerslist,v.Name)
 end
 
@@ -89,40 +89,49 @@ local SelectedPly = Tabs.Player:AddDropdown("SelectedPly", {
     Default = 1,
 })
 
-SelectedPly:SetValue("nil")
+_G.SelectPly = Playerslist[1] -- Gán giá trị ban đầu hợp lệ
 SelectedPly:OnChanged(function(Value)
     _G.SelectPly = Value
 end)
-
 
 Tabs.Player:AddButton({
     Title = "Refresh Player",
     Description = "Làm Mới Người Chơi",
     Callback = function()
         table.clear(Playerslist)
-        for i,v in pairs(game:GetService("Players"):GetChildren()) do
+        for i,v in pairs(game:GetService("Players"):GetPlayers()) do
             table.insert(Playerslist,v.Name)
         end
+        SelectedPly.Values = Playerslist -- Cập nhật lại UI dropdown
     end
 })
 
-local ToggleTeleport = Tabs.Player:AddToggle("ToggleTeleport", {Title = "Teleport To Player", Description = "Bay Đến Người Chơi",Default = false })
+
+local ToggleTeleport = Tabs.Player:AddToggle("ToggleTeleport", {
+    Title = "Teleport To Player",
+    Description = "Bay Đến Người Chơi",
+    Default = false
+})
+
 ToggleTeleport:OnChanged(function(Value)
     _G.TeleportPly = Value
-    if Value == false then
-        wait()
-        AutoHaki()
-        toTarget(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame)
-        wait()
+    if not Value then
+        pcall(function()
+            wait()
+            AutoHaki()
+            toTarget(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame)
+            wait()
+        end)
     end
 end)
-Options.ToggleTeleport:SetValue(false)
+
+ToggleTeleport:SetValue(false)
 
 spawn(function()
 	while wait() do
 		if _G.TeleportPly then
 			pcall(function()
-				if game.Players:FindFirstChild(_G.SelectPly) then
+				if _G.SelectPly and game.Players:FindFirstChild(_G.SelectPly) then
 					toTarget(game.Players[_G.SelectPly].Character.HumanoidRootPart.CFrame)
 				end
 			end)
